@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            Int            @id
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  source Source
+
+  user         User          @relation(references: [id], fields: [userId])
+  douFilters   DouFilter?
+  djinniFilter DjinniFilter?
+}
+
+enum Source {
+  DJINNI
+  DOU
+}
+
+model DouFilter {
+  id             Int     @id @default(autoincrement())
+  subscriptionId Int     @unique
+  categoryId     Int?
+  experienceId   Int?
+  cityId         Int?
+  remote         Boolean
+
+  subscription Subscription   @relation(fields: [subscriptionId], references: [id])
+  category     DouCategory?   @relation(fields: [categoryId], references: [id])
+  experience   Experience?    @relation(fields: [experienceId], references: [id])
+  city         UkrainianCity? @relation(fields: [cityId], references: [id])
+}
+
+model DouCategory {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  douFilters DouFilter[]
+}
+
+model DjinniFilter {
+  id             Int                        @id @default(autoincrement())
+  subscriptionId Int                        @unique
+  categories     DjinniFiltersCategory[]
+  salaryMin      Int?
+  experiences    DjinniFilterExperience[]
+  employmentId   Int?
+  companyTypes   DjinniFilterCompanyType[]
+  englishLevels  DjinniFilterEnglishLevel[]
+  domains        DjinniFilterDomain[]
+  regionId       Int?
+
+  region       DjinniRegion?     @relation(fields: [regionId], references: [id])
+  empoyment    DjinniEmployment? @relation(fields: [employmentId], references: [id])
+  subscription Subscription      @relation(fields: [subscriptionId], references: [id])
+}
+
+model DjinniFiltersCategory {
+  id         Int @id @default(autoincrement())
+  filterId   Int
+  categoryId Int
+
+  filter   DjinniFilter   @relation(fields: [filterId], references: [id])
+  category DjinniCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([filterId, categoryId])
+}
+
+model DjinniCategory {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  djinniSubCategories     DjinniSubCategory[]
+  djinniFiltersCategories DjinniFiltersCategory[]
+}
+
+model DjinniSubCategory {
+  id         Int    @id @default(autoincrement())
+  name       String
+  categoryId Int
+
+  category DjinniCategory @relation(fields: [categoryId], references: [id])
+}
+
+model DjinniEmployment {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  djinniFilters DjinniFilter[]
+}
+
+model DjinniFilterCompanyType {
+  id       Int @id @default(autoincrement())
+  filterId Int
+  typeId   Int
+
+  filer DjinniFilter      @relation(fields: [filterId], references: [id])
+  type  DjinniCompanyType @relation(fields: [typeId], references: [id])
+}
+
+model DjinniCompanyType {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  djinniFilterCompanyTypes DjinniFilterCompanyType[]
+}
+
+model DjinniFilterEnglishLevel {
+  id       Int @id @default(autoincrement())
+  filterId Int
+  levelId  Int
+
+  filter DjinniFilter       @relation(fields: [filterId], references: [id])
+  level  DjinniEnglishLevel @relation(fields: [levelId], references: [id])
+
+  @@unique([filterId, levelId])
+}
+
+model DjinniEnglishLevel {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  djinniFilterEnglishLevels DjinniFilterEnglishLevel[]
+}
+
+model DjinniFilterDomain {
+  id       Int @id @default(autoincrement())
+  filterId Int
+  domainId Int
+
+  filter DjinniFilter @relation(fields: [filterId], references: [id])
+  domain DjinniDomain @relation(fields: [domainId], references: [id])
+
+  @@unique([filterId, domainId])
+}
+
+model DjinniDomain {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  djinniFilterDomains DjinniFilterDomain[]
+}
+
+model DjinniRegion {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  djinniRegionCities    DjinniRegionCity[]
+  djinniRegionCountries DjinniRegionCountries[]
+  djinniFilters         DjinniFilter[]
+}
+
+model DjinniRegionCity {
+  id       Int @id @default(autoincrement())
+  regionId Int
+  cityId   Int
+
+  region DjinniRegion  @relation(fields: [regionId], references: [id])
+  city   UkrainianCity @relation(fields: [cityId], references: [id])
+
+  @@unique([regionId, cityId])
+}
+
+model DjinniRegionCountries {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  regionId Int
+
+  region DjinniRegion @relation(fields: [regionId], references: [id])
+}
+
+model DjinniFilterExperience {
+  id           Int @id @default(autoincrement())
+  filterId     Int
+  experienceId Int
+
+  filter     DjinniFilter @relation(fields: [filterId], references: [id])
+  experience Experience   @relation(fields: [experienceId], references: [id])
+
+  @@unique([filterId, experienceId])
+}
+
+model UkrainianCity {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  douFilters         DouFilter[]
+  djinniRegionCities DjinniRegionCity[]
+}
+
+model Experience {
+  id    Int @id @default(autoincrement())
+  years Int @unique
+
+  douFilters              DouFilter[]
+  djinniFilterExperiences DjinniFilterExperience[]
+}
