@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  bot_redis:
+    image: "redis:7"
+    ports:
+      - "6379:6379"
+    volumes:
+      - $PWD/redis-data:/var/lib/redis
+      - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+    env_file:
+      - .env
+  bot_postgres:
+    image: postgres:17-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - bot_postgres:/var/lib/postgresql/data
+
+volumes:
+  bot_redis:
+    name: job-alert-docker-redis
+  bot_postgres:
+    name: job-alert-docker-postgres
